@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ETF量化分析工具 V3</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f3f5f9;color:#202b3c;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{background:#152640;color:white;padding:22px 16px}
+header h1{font-size:22px;margin:0 0 8px}
+header p{font-size:13px;color:#cbd6e5;margin:0}
+main{max-width:850px;margin:auto;padding:14px}
+.card{background:white;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px #1526400b}
+h2{font-size:17px;margin:0 0 14px}
+label{display:block;font-size:13px;color:#59677a;margin:12px 0 6px}
+input,select{width:100%;padding:11px;border:1px solid #d7deea;border-radius:9px;background:white;font-size:15px;color:#202b3c}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{border:0;border-radius:9px;padding:12px 16px;font-size:15px;font-weight:600;cursor:pointer}
+.primary{background:#2365d8;color:white;width:100%;margin-top:16px}
+.secondary{background:#eaf0fa;color:#234a83}
+.score{font-size:38px;font-weight:750}
+.muted{font-size:12px;color:#78869a;line-height:1.6}
+.pill{display:inline-block;border-radius:20px;padding:5px 10px;background:#edf1f7;font-size:12px}
+.good{color:#168052}.warn{color:#b56b08}.bad{color:#c23939}
+.factor{margin:12px 0}
+.factor-top{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:6px}
+.bar{height:8px;background:#e8edf5;border-radius:10px;overflow:hidden}
+.fill{height:100%;background:#3978df;border-radius:10px}
+.notice{padding:12px;border-radius:9px;background:#fff5df;color:#81540a;font-size:13px;line-height:1.7}
+.signal{font-size:20px;font-weight:750;margin:8px 0}
+footer{text-align:center;padding:16px;color:#7b8797;font-size:12px}
+@media(max-width:480px){.grid{grid-template-columns:1fr 1fr;gap:9px}.card{padding:14px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>ETF 量化分析工具 V3</h1>
+  <p>六因子评分 · 风险拦截 · 人工确认交易</p>
+</header>
+<main>
+  <section class="card">
+    <h2>① 标的与账户</h2>
+    <label>市场类型</label>
+    <select id="market" onchange="marketChanged()">
+      <option value="nasdaq">纳指100 ETF</option>
+      <option value="ashare">A股行业/宽基 ETF</option>
+    </select>
+    <div class="grid">
+      <div><label>ETF名称</label><input id="name" value="纳指100 ETF"></div>
+      <div><label>当前价格（元）</label><input id="price" type="number" value="1.05" min="0" step="0.001"></div>
+      <div><label>参考净值（元）</label><input id="nav" type="number" value="1.00" min="0" step="0.001"></div>
+      <div><label>可用现金（元）</label><input id="cash" type="number" value="3860" min="0" step="100"></div>
+      <div><label>当前持仓市值（元）</label><input id="holding" type="number" value="7258" min="0" step="100"></div>
+      <div><label>计划新增金额（元）</label><input id="plan" type="number" value="500" min="0" step="100"></div>
+    </div>
+    <p class="muted">价格、净值和账户数据需自行核对。当前版本不会连接券商账户。</p>
+  </section>
+
+  <section class="card">
+    <h2>② 六因子评分</h2>
+    <p class="muted">每项0—100分。以下是演示初始值，尚未经过历史回测验证。</p>
+    <div class="factor"><div class="factor-top"><span>趋势（权重25%）</span><b id="v0">65</b></div><input id="f0" type="range" min="0" max="100" value="65" oninput="showValue(0)"></div>
+    <div class="factor"><div class="factor-top"><span>动量（权重15%）</span><b id="v1">60</b></div><input id="f1" type="range" min="0" max="100" value="60" oninput="showValue(1)"></div>
+    <div class="factor"><div class="factor-top"><span>量价（权重15%）</span><b id="v2">55</b></div><input id="f2" type="range" min="0" max="100" value="55" oninput="showValue(2)"></div>
+    <div class="factor"><div class="factor-top"><span>资金代理（权重15%）</span><b id="v3">55</b></div><input id="f3" type="range" min="0" max="100" value="55" oninput="showValue(3)"></div>
+    <div class="factor"><div class="factor-top"><span id="macroLabel">宏观与跨市场（权重20%）</span><b id="v4">50</b></div><input id="f4" type="range" min="0" max="100" value="50" oninput="showValue(4)"></div>
+    <div class="factor"><div class="factor-top"><span>溢价与风险（权重10%）</span><b id="v5">40</b></div><input id="f5" type="range" min="0" max="100" value="40" oninput="showValue(5)"></div>
+    <button class="primary" onclick="analyze()">计算评分与信号</button>
+  </section>
+
+  <section class="card" id="result">
+    <h2>③ 分析结果</h2>
+    <p class="muted">点击“计算评分与信号”生成结果。</p>
+  </section>
+
+  <section class="card">
+    <h2>④ 风控规则</h2>
+    <div class="grid">
+      <div><label>溢价拦截线（%）</label><input id="premiumLimit" type="number" value="5" min="0" step="0.5"></div>
+      <div><label>单笔投入上限（元）</label><input id="singleLimit" type="number" value="1000" min="0" step="100"></div>
+      <div><label>总仓位上限（%）</label><input id="positionLimit" type="number" value="80" min="1" max="100"></div>
+      <div><label>数据状态</label><select id="dataStatus"><option value="demo">演示数据/未核实</option><option value="checked">我已核对输入数据</option></select></div>
+    </div>
+    <p class="muted">纳指QDII的参考净值可能有时差；A股ETF的盘中IOPV也不等于最终结算净值。阈值需按具体产品调整。</p>
+  </section>
+
+  <section class="card">
+    <h2>⑤ 使用边界</h2>
+    <div class="notice">
+      当前 V3 是本地演示计算器：没有接入实时行情、真实主力资金流或宏观数据，也没有经过历史回测。评分不是收益概率，不构成自动买卖指令。演示数据状态下，系统会禁止输出可执行的新增买入信号。
+    </div>
+  </section>
+</main>
+<footer>ETF Quant V3 · 先验证计算，再接入数据</footer>
+<script>
+const weights=[0.25,0.15,0.15,0.15,0.20,0.10];
+function num(id){return Number(document.getElementById(id).value)}
+function showValue(i){document.getElementById("v"+i).textContent=num("f"+i)}
+function marketChanged(){
+  const m=document.getElementById("market").value;
+  document.getElementById("name").value=m==="nasdaq"?"纳指100 ETF":"A股 ETF";
+  document.getElementById("macroLabel").textContent=m==="nasdaq"?"宏观与跨市场（权重20%）":"市场环境与板块强弱（权重20%）";
+}
+function analyze(){
+  const price=num("price"),nav=num("nav"),cash=num("cash"),holding=num("holding"),plan=num("plan");
+  const premiumLimit=num("premiumLimit"),singleLimit=num("singleLimit"),positionLimit=num("positionLimit");
+  const total=price>0&&nav>0?(price/nav-1)*100:NaN;
+  const score=weights.reduce((s,w,i)=>s+num("f"+i)*w,0);
+  const market=document.getElementById("market").value;
+  const demo=document.getElementById("dataStatus").value==="demo";
+  const warnings=[];
+  if(!(price>0&&nav>0))warnings.push("价格或参考净值无效，停止分析。");
+  if(!Number.isFinite(total))warnings.push("无法计算溢价率。");
+  else if(total>=premiumLimit)warnings.push("溢价达到或超过拦截线，禁止新增买入。");
+  if(plan>cash)warnings.push("计划投入超过可用现金，禁止按原计划新增买入。");
+  if(plan>singleLimit)warnings.push("计划投入超过单笔上限，需降低金额。");
+  const newPosition=price>0?((holding+plan)/(holding+cash))*100:Infinity;
+  if(newPosition>positionLimit)warnings.push("按计划投入估算的仓位超过上限，需重新核算。");
+  if(demo)warnings.push("当前为演示数据，不能生成可执行买入信号。");
+  let label=score>=80?"偏强":score>=65?"偏多":score>=40?"中性":score>=20?"偏弱":"极弱";
+  let cls=score>=65?"good":score>=40?"warn":"bad";
+  let decision="观望/继续核实";
+  if(score<40)decision="偏弱：谨慎评估持仓风险";
+  else if(score>=65)decision="偏多：等待风控条件确认";
+  if(warnings.length)decision="风险拦截：暂不新增买入";
+  const names=["趋势","动量","量价","资金代理","宏观/市场环境","溢价与风险"];
+  const factors=names.map((n,i)=>'<div class="factor"><div class="factor-top"><span>'+n+'</span><b>'+num("f"+i)+'/100</b></div><div class="bar"><div class="fill" style="width:'+num("f"+i)+'%"></div></div></div>').join("");
+  const warningHtml=warnings.length?'<div class="notice"><b>风险提示</b><br>'+warnings.map(x=>"• "+x).join("<br>")+'</div>':'<p class="good">未触发当前已设置的拦截规则；仍需人工核实数据与产品规则。</p>';
+  document.getElementById("result").innerHTML=
+    '<h2>③ 分析结果</h2>'+
+    '<div class="grid"><div><div class="muted">六因子综合评分</div><div class="score">'+score.toFixed(1)+'</div><span class="pill '+cls+'">'+label+'</span></div>'+
+    '<div><div class="muted">计算溢价率</div><div class="score" style="font-size:28px">'+(Number.isFinite(total)?total.toFixed(2)+'%':'无效')+'</div><div class="muted">价格÷参考净值−1</div></div></div>'+
+    '<p class="signal">'+decision+'</p>'+
+    '<p class="muted">标的：'+escapeHtml(document.getElementById("name").value)+'；市场：'+(market==="nasdaq"?"纳指100":"A股ETF")+'</p>'+
+    factors+warningHtml+
+    '<p class="muted">评分只反映你输入的因子分数；系统尚未自动读取行情或验证因子真实性。当前估算仓位仅用于提示，实际仓位应按真实账户总资产核算。</p>';
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+analyze();
+</script>
+</body>
+</html>
