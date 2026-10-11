@@ -3,155 +3,327 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ETF量化分析工具</title>
+<meta name="theme-color" content="#101827">
+<title>ETF量化分析工具 V2</title>
 <style>
-:root{--bg:#f4f6fa;--card:#fff;--text:#202938;--muted:#6b7280;--line:#e5e7eb;--blue:#2563eb;--red:#dc2626;--green:#059669}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;font-size:15px}
-header{background:#172554;color:white;padding:24px 18px 22px}
-header h1{font-size:23px;margin:0 0 8px}
-header p{font-size:13px;color:#cbd5e1;margin:0;line-height:1.7}
-main{max-width:760px;margin:auto;padding:14px}
-.card{background:var(--card);border-radius:15px;padding:17px;margin-bottom:14px;box-shadow:0 2px 9px #1725540b}
-h2{font-size:17px;margin:0 0 15px}
-h3{font-size:14px;margin:16px 0 9px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
-input,select{width:100%;height:43px;border:1px solid #d1d5db;border-radius:9px;padding:0 10px;background:white;font-size:16px;color:var(--text);min-width:0}
-input:focus,select:focus{outline:2px solid #bfdbfe;border-color:var(--blue)}
-.field{min-width:0}
-button{border:0;border-radius:10px;padding:12px 15px;font-size:14px;font-weight:600;cursor:pointer}
-.primary{background:var(--blue);color:white;width:100%;margin-top:14px}
-.secondary{background:#eff6ff;color:#1d4ed8}
-.results{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
-.metric{background:#f8fafc;border:1px solid #eef2f7;border-radius:11px;padding:12px;min-width:0}
-.metric span{display:block;font-size:12px;color:var(--muted);margin-bottom:8px}
-.metric strong{font-size:19px;overflow-wrap:anywhere}
-.good{color:var(--green)}.bad{color:var(--red)}
-.note{font-size:12px;color:var(--muted);line-height:1.7;margin:12px 0 0}
-.warning{background:#fff7ed;color:#9a3412;border-radius:10px;padding:11px;font-size:12px;line-height:1.7;margin-top:12px}
-hr{border:0;border-top:1px solid var(--line);margin:17px 0}
-footer{text-align:center;color:var(--muted);font-size:12px;padding:8px 16px 28px;line-height:1.8}
-@media(min-width:600px){main{padding:22px}.card{padding:22px}.results{grid-template-columns:repeat(3,1fr)}}
+:root {
+  --bg:#0b1120; --panel:#141e30; --line:#2b3950;
+  --text:#edf3fc; --muted:#9aabc2; --blue:#70a7ff;
+  --green:#4cdaa0; --red:#ff777f; --yellow:#f5c76a;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  line-height:1.5;
+}
+header { padding:24px 16px 16px; background:#101827; border-bottom:1px solid var(--line); }
+h1 { font-size:24px; margin:0 0 6px; }
+h2 { font-size:17px; margin:0 0 14px; }
+p { margin:6px 0; }
+.sub { color:var(--muted); font-size:13px; }
+main { max-width:760px; margin:auto; padding:14px; }
+.panel {
+  background:var(--panel); border:1px solid var(--line);
+  border-radius:15px; padding:16px; margin-bottom:14px;
+}
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+label { display:block; font-size:13px; color:var(--muted); margin-bottom:5px; }
+input,select {
+  width:100%; min-width:0; padding:12px 10px;
+  border:1px solid var(--line); border-radius:9px;
+  background:#0c1423; color:var(--text); font-size:16px;
+}
+input:focus { outline:1px solid var(--blue); }
+.field { min-width:0; }
+button {
+  border:0; border-radius:10px; padding:12px 15px;
+  font-size:15px; font-weight:600; cursor:pointer;
+}
+.primary { background:var(--blue); color:#081426; width:100%; margin-top:14px; }
+.secondary { background:#26364d; color:var(--text); }
+.cards { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.metric { background:#0c1423; border-radius:10px; padding:12px; min-width:0; }
+.metric .name { color:var(--muted); font-size:12px; }
+.metric .value { font-size:20px; font-weight:700; overflow-wrap:anywhere; margin-top:5px; }
+.green { color:var(--green); }
+.red { color:var(--red); }
+.yellow { color:var(--yellow); }
+.blue { color:var(--blue); }
+.notice { border-radius:10px; padding:12px; background:#0c1423; font-size:14px; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th,td { padding:10px 5px; border-bottom:1px solid var(--line); text-align:right; }
+th:first-child,td:first-child { text-align:left; }
+th { color:var(--muted); font-weight:500; }
+.pill { display:inline-block; border-radius:20px; padding:3px 9px; font-size:12px; background:#26364d; }
+footer { color:var(--muted); font-size:12px; padding:8px 2px 30px; }
+@media(max-width:380px) {
+  .grid { grid-template-columns:1fr 1fr; gap:8px; }
+  .panel { padding:12px; }
+  .metric .value { font-size:17px; }
+}
 </style>
 </head>
 <body>
 <header>
-<h1>ETF 量化分析工具</h1>
-<p>个人投资辅助 · 持仓计算 · 溢价风险 · 补仓模拟<br>V1.0｜手动输入行情，不连接交易账户</p>
+  <h1>ETF量化分析工具</h1>
+  <p class="sub">V2.0 · 持仓管理 / 溢价监测 / 补仓测算 / 风险控制</p>
 </header>
+
 <main>
-<section class="card">
-<h2>① 持仓与行情</h2>
-<div class="grid">
-<div class="field"><label for="name">ETF名称 / 代码</label><input id="name" value="纳指ETF" placeholder="例如：159513"></div>
-<div class="field"><label for="shares">持有份额（份）</label><input id="shares" type="number" min="0" step="any" value="1000"></div>
-<div class="field"><label for="cost">持仓成本（元/份）</label><input id="cost" type="number" min="0" step="any" value="1.2"></div>
-<div class="field"><label for="price">当前价格（元/份）</label><input id="price" type="number" min="0" step="any" value="1.25"></div>
-<div class="field"><label for="cash">可用现金（元）</label><input id="cash" type="number" min="0" step="any" value="3000"></div>
-<div class="field"><label for="nav">参考净值（元/份）</label><input id="nav" type="number" min="0" step="any" value="1.12"></div>
-</div>
-<button class="primary" onclick="calculate()">计算分析</button>
-<div class="results" id="holdingResults"></div>
-<p class="note">参考净值请使用与当前交易价格对应的基金净值估算值。价格、份额和成本请以实际账户为准。</p>
-</section>
+  <section class="panel">
+    <h2>01 · 持仓与行情输入</h2>
+    <div class="grid">
+      <div class="field">
+        <label for="code">ETF代码</label>
+        <input id="code" value="159513" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="shares">持仓份额（份）</label>
+        <input id="shares" type="number" min="0" step="1" value="5000">
+      </div>
+      <div class="field">
+        <label for="cost">持仓成本价（元）</label>
+        <input id="cost" type="number" min="0" step="0.001" value="1.000">
+      </div>
+      <div class="field">
+        <label for="price">当前价格（元）</label>
+        <input id="price" type="number" min="0" step="0.001" value="1.050">
+      </div>
+      <div class="field">
+        <label for="nav">参考净值（元）</label>
+        <input id="nav" type="number" min="0" step="0.001" value="1.000">
+      </div>
+      <div class="field">
+        <label for="cash">可用现金（元）</label>
+        <input id="cash" type="number" min="0" step="0.01" value="3860">
+      </div>
+    </div>
+    <p class="sub" style="margin-top:12px">价格和净值需手动更新。本工具不连接实时行情。</p>
+    <button class="primary" onclick="calculate()">计算并更新结果</button>
+  </section>
 
-<section class="card">
-<h2>② 溢价回落风险测算</h2>
-<div class="grid">
-<div class="field"><label for="targetPremium">假设目标溢价率（%）</label><input id="targetPremium" type="number" step="any" value="5"></div>
-<div class="field"><label for="futureChange">同期净值涨跌假设（%）</label><input id="futureChange" type="number" step="any" value="0"></div>
-</div>
-<div class="results" id="premiumResults"></div>
-<p class="note">模型假设：持仓份额不变，目标溢价与净值涨跌按输入值变化；未计手续费、汇率变化及跟踪误差。这是情景测算，不是价格预测。</p>
-</section>
+  <section class="panel">
+    <h2>02 · 持仓盈亏</h2>
+    <div class="cards">
+      <div class="metric"><div class="name">持仓成本金额</div><div id="costValue" class="value">—</div></div>
+      <div class="metric"><div class="name">当前持仓市值</div><div id="marketValue" class="value">—</div></div>
+      <div class="metric"><div class="name">浮动盈亏</div><div id="pnl" class="value">—</div></div>
+      <div class="metric"><div class="name">持仓收益率</div><div id="returnRate" class="value">—</div></div>
+      <div class="metric"><div class="name">总资产估算（市值+现金）</div><div id="assets" class="value">—</div></div>
+      <div class="metric"><div class="name">股票类资产仓位</div><div id="positionRate" class="value">—</div></div>
+    </div>
+  </section>
 
-<section class="card">
-<h2>③ 补仓成本模拟</h2>
-<div class="grid">
-<div class="field"><label for="buyAmount">计划补仓金额（元）</label><input id="buyAmount" type="number" min="0" step="any" value="500"></div>
-<div class="field"><label for="buyPrice">计划买入价格（元/份）</label><input id="buyPrice" type="number" min="0" step="any" value="1.20"></div>
-</div>
-<div class="results" id="buyResults"></div>
-<p class="note">此处按金额模拟份额，暂不考虑交易单位限制、手续费及滑点。实际场内ETF买入需遵守交易所的申报规则。</p>
-</section>
+  <section class="panel">
+    <h2>03 · 溢价率与风险提示</h2>
+    <div class="grid">
+      <div class="field">
+        <label for="warn1">关注阈值（%）</label>
+        <input id="warn1" type="number" step="0.1" value="2">
+      </div>
+      <div class="field">
+        <label for="warn2">高溢价阈值（%）</label>
+        <input id="warn2" type="number" step="0.1" value="5">
+      </div>
+      <div class="field">
+        <label for="warn3">极高溢价阈值（%）</label>
+        <input id="warn3" type="number" step="0.1" value="8">
+      </div>
+    </div>
+    <div class="cards" style="margin-top:12px">
+      <div class="metric"><div class="name">估算溢价率</div><div id="premium" class="value">—</div></div>
+      <div class="metric"><div class="name">风险提示</div><div id="premiumStatus" class="value" style="font-size:17px">—</div></div>
+    </div>
+    <div id="premiumNote" class="notice" style="margin-top:12px">输入价格和参考净值后计算。</div>
+    <p class="sub" style="margin-top:10px">阈值只是可调整的监测参数，不代表买卖建议。跨境ETF的参考净值可能滞后，估算溢价率不一定等于实时可交易溢价。</p>
+  </section>
 
-<section class="card">
-<h2>④ 简单操作参考</h2>
-<div class="grid">
-<div class="field"><label for="maxPosition">你设定的最高仓位（%）</label><input id="maxPosition" type="number" min="1" max="100" value="80"></div>
-<div class="field"><label for="addDrop">计划加仓参考跌幅（%）</label><input id="addDrop" type="number" min="0" max="100" step="any" value="5"></div>
-</div>
-<div class="results" id="ruleResults"></div>
-<p class="note">这些只是你自设的风险管理参数，不构成买入或卖出指令。实际决策还应考虑溢价、趋势、资金用途与风险承受能力。</p>
-</section>
+  <section class="panel">
+    <h2>04 · 分批补仓计算器</h2>
+    <div class="grid">
+      <div class="field">
+        <label for="addCash">计划投入金额（元）</label>
+        <input id="addCash" type="number" min="0" step="100" value="1000">
+      </div>
+      <div class="field">
+        <label for="buyPrice">预计买入价格（元）</label>
+        <input id="buyPrice" type="number" min="0" step="0.001" value="1.050">
+      </div>
+    </div>
+    <p class="sub" style="margin-top:10px">按每次买入100份的整数倍估算，并受可用现金限制；未计手续费。</p>
+    <button class="primary" onclick="calculate()">计算补仓结果</button>
+    <div class="cards" style="margin-top:14px">
+      <div class="metric"><div class="name">预计买入份额</div><div id="addShares" class="value">—</div></div>
+      <div class="metric"><div class="name">预计实际投入</div><div id="actualAdd" class="value">—</div></div>
+      <div class="metric"><div class="name">补仓后平均成本</div><div id="newCost" class="value">—</div></div>
+      <div class="metric"><div class="name">补仓后剩余现金</div><div id="remainingCash" class="value">—</div></div>
+      <div class="metric"><div class="name">补仓后总份额</div><div id="newShares" class="value">—</div></div>
+      <div class="metric"><div class="name">补仓后总市值（按当前价）</div><div id="newMarketValue" class="value">—</div></div>
+    </div>
+    <div id="addNote" class="notice" style="margin-top:12px">填写金额后计算。</div>
+  </section>
 
-<section class="card">
-<h2>⑤ 使用说明</h2>
-<p class="note">1. 填入持仓份额、成本、最新价格、参考净值和现金。<br>2. 点击“计算分析”，查看持仓市值、盈亏、溢价率和仓位。<br>3. 在第二栏调整目标溢价，观察不同情景下的估算结果。<br>4. 在第三栏输入补仓金额和价格，查看模拟后的成本。<br>5. 所有行情均需手动更新，本版本不提供实时行情，不会自动下单。</p>
-<div class="warning">风险提示：ETF可能发生本金亏损。高溢价产品在溢价收缩时，即使跟踪指数不跌，交易价格也可能明显回落。请勿仅凭单一指标交易。</div>
-</section>
+  <section class="panel">
+    <h2>05 · 不同价格下的盈亏情景</h2>
+    <p class="sub" style="margin-bottom:10px">根据当前持仓测算，不包含补仓、手续费和税费。</p>
+    <table>
+      <thead><tr><th>假设价格</th><th>持仓市值</th><th>浮动盈亏</th><th>收益率</th></tr></thead>
+      <tbody id="scenarioTable"></tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h2>06 · 仓位警戒设置</h2>
+    <div class="grid">
+      <div class="field">
+        <label for="maxPosition">目标最大仓位（%）</label>
+        <input id="maxPosition" type="number" min="1" max="100" step="1" value="70">
+      </div>
+      <div class="field">
+        <label for="maxAdd">单次补仓上限（元）</label>
+        <input id="maxAdd" type="number" min="0" step="100" value="1000">
+      </div>
+    </div>
+    <div id="positionNote" class="notice" style="margin-top:12px">计算后显示仓位提示。</div>
+  </section>
+
+  <section class="panel">
+    <h2>07 · 数据使用说明</h2>
+    <p class="sub">本工具仅做输入数据的计算与情景分析，不提供实时行情、自动交易或收益保证。请核对ETF代码、价格、参考净值和费用。计算结果不构成投资建议。</p>
+    <button class="secondary" onclick="resetDemo()">恢复演示数据</button>
+  </section>
+
+  <footer>ETF量化分析工具 V2.0 · 本地计算页面 · 投资有风险，请独立判断。</footer>
 </main>
-<footer>ETF 量化分析工具 V1.0<br>计算结果仅供个人研究参考，不构成投资建议。</footer>
+
 <script>
-const $=id=>document.getElementById(id);
-const num=id=>Number($(id).value);
-const money=x=>Number.isFinite(x)?x.toLocaleString("zh-CN",{minimumFractionDigits:2,maximumFractionDigits:2})+" 元":"—";
-const pct=x=>Number.isFinite(x)?x.toFixed(2)+"%":"—";
-function metric(label,value,cls=""){return '<div class="metric"><span>'+label+'</span><strong class="'+cls+'">'+value+'</strong></div>'}
-function calculate(){
- const shares=num("shares"),cost=num("cost"),price=num("price"),cash=num("cash"),nav=num("nav");
- const valid=[shares,cost,price,cash,nav].every(Number.isFinite)&&shares>=0&&cost>=0&&price>=0&&cash>=0&&nav>=0;
- if(!valid){alert("请检查输入，数值不能为负数。");return}
- const value=shares*price,invested=shares*cost,pnl=value-invested,ret=invested>0?pnl/invested*100:NaN;
- const total=value+cash,position=total>0?value/total*100:0;
- const premium=nav>0?(price/nav-1)*100:NaN;
- $("holdingResults").innerHTML=
- metric("持仓市值",money(value))+
- metric("持仓成本总额",money(invested))+
- metric("浮动盈亏",money(pnl),pnl>=0?"good":"bad")+
- metric("持仓收益率",pct(ret),ret>=0?"good":"bad")+
- metric("当前溢价率",pct(premium),premium>0?"bad":"good")+
- metric("资金仓位",pct(position));
- const target=num("targetPremium"),navChange=num("futureChange");
- const currentPremium=premium;
- const futureNav=nav*(1+navChange/100);
- const futurePrice=futureNav*(1+target/100);
- const futureValue=shares*futurePrice;
- const scenarioPnl=futureValue-invested;
- const scenarioReturn=invested>0?scenarioPnl/invested*100:NaN;
- $("premiumResults").innerHTML=
- metric("假设情景价格",money(futurePrice))+
- metric("假设持仓市值",money(futureValue))+
- metric("相对当前市值变化",money(futureValue-value),futureValue>=value?"good":"bad")+
- metric("相对当前市值变化率",value>0?pct((futureValue/value-1)*100):"—")+
- metric("相对持仓成本盈亏",money(scenarioPnl),scenarioPnl>=0?"good":"bad")+
- metric("相对持仓成本收益率",pct(scenarioReturn),scenarioReturn>=0?"good":"bad");
- const amount=num("buyAmount"),buyPrice=num("buyPrice");
- if(amount<0||buyPrice<0||!Number.isFinite(amount)||!Number.isFinite(buyPrice)){alert("请检查补仓金额和价格。");return}
- const newShares=buyPrice>0?amount/buyPrice:0;
- const newTotalShares=shares+newShares;
- const newCostTotal=invested+amount;
- const avg=newTotalShares>0?newCostTotal/newTotalShares:0;
- $("buyResults").innerHTML=
- metric("模拟新增份额",newShares.toLocaleString("zh-CN",{maximumFractionDigits:4})+" 份")+
- metric("补仓后总份额",newTotalShares.toLocaleString("zh-CN",{maximumFractionDigits:4})+" 份")+
- metric("补仓后平均成本",money(avg))+
- metric("补仓后成本总额",money(newCostTotal))+
- metric("补仓后按当前价市值",money(newTotalShares*price))+
- metric("补仓后按当前价盈亏",money(newTotalShares*price-newCostTotal),(newTotalShares*price>=newCostTotal)?"good":"bad");
- const maxPos=num("maxPosition"),drop=num("addDrop");
- const maxValue=total*maxPos/100;
- const remaining=maxValue-value;
- $("ruleResults").innerHTML=
- metric("设定最高仓位",pct(maxPos))+
- metric("按当前总资金可持有市值",money(maxValue))+
- metric("距最高仓位的市值空间",money(remaining),remaining>=0?"good":"bad")+
- metric("加仓参考跌幅",pct(drop))+
- metric("参考价（当前价下跌后）",money(price*(1-drop/100)))+
- metric("提醒","仅为参数模拟");
+function num(id) {
+  const el = document.getElementById(id);
+  const v = Number(el.value);
+  return Number.isFinite(v) ? v : 0;
 }
-["name","shares","cost","price","cash","nav","targetPremium","futureChange","buyAmount","buyPrice","maxPosition","addDrop"].forEach(id=>$(id).addEventListener("input",calculate));
+function fmt(v, digits=2) {
+  if (!Number.isFinite(v)) return "—";
+  return v.toLocaleString("zh-CN", {
+    minimumFractionDigits:digits, maximumFractionDigits:digits
+  });
+}
+function money(v) { return fmt(v, 2) + " 元"; }
+function pct(v) { return Number.isFinite(v) ? fmt(v, 2) + "%" : "—"; }
+function setText(id, text, cls) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.classList.remove("green","red","yellow","blue");
+  if (cls) el.classList.add(cls);
+}
+function calculate() {
+  const shares = Math.max(0, num("shares"));
+  const cost = Math.max(0, num("cost"));
+  const price = Math.max(0, num("price"));
+  const nav = Math.max(0, num("nav"));
+  const cash = Math.max(0, num("cash"));
+
+  const costValue = shares * cost;
+  const marketValue = shares * price;
+  const pnl = marketValue - costValue;
+  const rate = costValue > 0 ? pnl / costValue * 100 : NaN;
+  const assets = marketValue + cash;
+  const position = assets > 0 ? marketValue / assets * 100 : 0;
+
+  setText("costValue", money(costValue));
+  setText("marketValue", money(marketValue));
+  setText("pnl", (pnl > 0 ? "+" : "") + money(pnl), pnl > 0 ? "green" : pnl < 0 ? "red" : "");
+  setText("returnRate", pct(rate), rate > 0 ? "green" : rate < 0 ? "red" : "");
+  setText("assets", money(assets));
+  setText("positionRate", pct(position));
+
+  const premium = nav > 0 ? (price / nav - 1) * 100 : NaN;
+  setText("premium", pct(premium), premium > 0 ? "yellow" : premium < 0 ? "green" : "");
+  const w1 = num("warn1"), w2 = num("warn2"), w3 = num("warn3");
+  let status = "无法判断", cls = "", note = "请填写大于0的价格和参考净值。";
+  if (Number.isFinite(premium)) {
+    if (premium >= w3) {
+      status = "极高溢价"; cls = "red";
+      note = "估算溢价已达到极高阈值。注意溢价回落风险，核对参考净值时间，不要只凭这一项做决定。";
+    } else if (premium >= w2) {
+      status = "高溢价"; cls = "red";
+      note = "估算溢价达到高溢价阈值。建议进一步核对实时净值、流动性和交易价格。";
+    } else if (premium >= w1) {
+      status = "关注溢价"; cls = "yellow";
+      note = "估算溢价达到关注阈值。留意净值变化和买卖价差。";
+    } else {
+      status = "低于关注阈值"; cls = "green";
+      note = "估算溢价低于设定关注阈值，但不代表没有价格或市场风险。";
+    }
+  }
+  setText("premiumStatus", status, cls);
+  document.getElementById("premiumNote").textContent = note;
+
+  const budget = Math.max(0, num("addCash"));
+  const buyPrice = Math.max(0, num("buyPrice"));
+  const maxAdd = Math.max(0, num("maxAdd"));
+  const spendLimit = Math.min(budget, cash, maxAdd > 0 ? maxAdd : cash);
+  const addShares = buyPrice > 0 ? Math.floor(spendLimit / buyPrice / 100) * 100 : 0;
+  const actualAdd = addShares * buyPrice;
+  const totalShares = shares + addShares;
+  const totalCost = costValue + actualAdd;
+  const newCost = totalShares > 0 ? totalCost / totalShares : 0;
+  const remaining = cash - actualAdd;
+
+  setText("addShares", fmt(addShares, 0) + " 份");
+  setText("actualAdd", money(actualAdd));
+  setText("newCost", totalShares > 0 ? fmt(newCost, 4) + " 元" : "—");
+  setText("remainingCash", money(remaining));
+  setText("newShares", fmt(totalShares, 0) + " 份");
+  setText("newMarketValue", money(totalShares * price));
+
+  let addNote = "按输入金额、可用现金和单次补仓上限测算，实际成交可能不同。";
+  if (buyPrice <= 0) addNote = "请填写大于0的预计买入价格。";
+  else if (addShares === 0) addNote = "当前预算不足以买入100份，或单次补仓上限为0。";
+  else if (budget > cash) addNote = "计划投入超过可用现金，已按可用现金限制测算。";
+  else if (maxAdd > 0 && budget > maxAdd) addNote = "计划投入超过单次补仓上限，已按上限限制测算。";
+  document.getElementById("addNote").textContent = addNote;
+
+  const tbody = document.getElementById("scenarioTable");
+  tbody.innerHTML = "";
+  [-10, -5, 0, 5, 10].forEach(change => {
+    const p = price * (1 + change / 100);
+    const val = shares * p;
+    const profit = val - costValue;
+    const r = costValue > 0 ? profit / costValue * 100 : NaN;
+    const tr = document.createElement("tr");
+    [fmt(p, 3) + " 元 (" + (change > 0 ? "+" : "") + change + "%)",
+     money(val), (profit > 0 ? "+" : "") + money(profit), pct(r)]
+     .forEach((t, i) => {
+       const td = document.createElement("td");
+       td.textContent = t;
+       if (i > 1) td.className = profit > 0 ? "green" : profit < 0 ? "red" : "";
+       tr.appendChild(td);
+     });
+    tbody.appendChild(tr);
+  });
+
+  const maxPosition = Math.max(1, Math.min(100, num("maxPosition")));
+  const posNote = document.getElementById("positionNote");
+  if (position >= maxPosition) {
+    posNote.textContent = "当前仓位已达到或超过你设定的目标上限（" + maxPosition + "%）。这是提醒，不会自动交易。";
+  } else {
+    posNote.textContent = "当前仓位低于你设定的目标上限（" + maxPosition + "%）。是否加仓还应结合溢价、市场风险和个人计划判断。";
+  }
+}
+function resetDemo() {
+  const defaults = {
+    code:"159513", shares:"5000", cost:"1.000", price:"1.050",
+    nav:"1.000", cash:"3860", addCash:"1000", buyPrice:"1.050",
+    warn1:"2", warn2:"5", warn3:"8", maxPosition:"70", maxAdd:"1000"
+  };
+  Object.keys(defaults).forEach(id => document.getElementById(id).value = defaults[id]);
+  calculate();
+}
+document.querySelectorAll("input").forEach(el => {
+  el.addEventListener("input", calculate);
+});
 calculate();
 </script>
 </body>
